@@ -30,8 +30,8 @@ enum Response {
     Download,
     Login,
     Reply,
-    Fav,
-    Unfav,
+    Fav(labrat::client::Response<View>),
+    Unfav(labrat::client::Response<View>),
     Submissions(labrat::client::Response<Submissions>),
     ClearSubmissions,
 }
@@ -43,9 +43,9 @@ impl Response {
             Response::Submissions(cr) => cr.header.as_ref(),
             Response::Login => None,
             Response::Download => None,
-            Response::Reply => None,            // TODO
-            Response::Fav => None,              // TODO
-            Response::Unfav => None,            // TODO
+            Response::Reply => None, // TODO
+            Response::Fav(cr) => cr.header.as_ref(),
+            Response::Unfav(cr) => cr.header.as_ref(),
             Response::ClearSubmissions => None, // TODO
         }
     }
@@ -69,13 +69,13 @@ struct Msg<T> {
     content: T,
 }
 
-#[cfg(target_arch="arm")]
+#[cfg(target_arch = "arm")]
 fn fix_scaling() {
     // Hack around non-integer scale factor on Ubuntu Touch
     std::env::set_var("QT_SCALE_FACTOR", "2");
 }
 
-#[cfg(not(target_arch="arm"))]
+#[cfg(not(target_arch = "arm"))]
 fn fix_scaling() {
     unsafe {
         cpp! { {

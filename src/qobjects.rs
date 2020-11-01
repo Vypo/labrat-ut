@@ -5,7 +5,7 @@ use labrat::keys::{CommentReplyKey, FavKey, SubmissionsKey, ViewKey};
 use labrat::resources::header::{Header, Notifications};
 use labrat::resources::msg::submissions::Submissions;
 use labrat::resources::view::{CommentContainer, View};
-use labrat::resources::{MiniUser, Submission, PreviewSize, SubmissionKind};
+use labrat::resources::{MiniUser, PreviewSize, Submission, SubmissionKind};
 
 use qmetaobject::*;
 
@@ -525,11 +525,13 @@ pub struct RatController {
                         Response::Reply => {
                             controller.replyCompleted();
                         }
-                        Response::Fav => {
+                        Response::Fav(view) => {
                             controller.favCompleted();
+                            controller.update_live_view(view.page);
                         }
-                        Response::Unfav => {
+                        Response::Unfav(view) => {
                             controller.unfavCompleted();
+                            controller.update_live_view(view.page);
                         }
                     }
                 }
@@ -605,6 +607,22 @@ impl RatController {
 
         if worker.send(Msg { id, content }).is_err() {
             panic!("worker thread died");
+        }
+    }
+
+    fn update_live_view(&self, view: View) {
+        let mut live_rat_view = self.view.borrow_mut();
+        let replace = match &live_rat_view.view {
+            Some(live_view) => {
+                let new_key = ViewKey::from(&view);
+                let old_key = ViewKey::from(live_view);
+                new_key == old_key
+            }
+            None => false,
+        };
+
+        if replace {
+            live_rat_view.set(view);
         }
     }
 

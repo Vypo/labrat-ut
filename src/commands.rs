@@ -123,11 +123,11 @@ async fn login(client: Arc<Client>, cookies: HeaderValue) -> ResponseResult {
 }
 
 async fn fav(client: Arc<Client>, fav: FavKey) -> ResponseResult {
-    client.fav(fav).await.context(error::Request)?;
-    Ok(Response::Fav)
+    let resp = client.fav(fav).await.context(error::Request)?;
+    Ok(Response::Fav(resp))
 }
 
 async fn unfav(client: Arc<Client>, fav: FavKey) -> ResponseResult {
-    client.unfav(fav).await.context(error::Request)?;
-    Ok(Response::Unfav)
+    let resp = client.unfav(fav).await.context(error::Request)?;
+    Ok(Response::Unfav(resp))
 }

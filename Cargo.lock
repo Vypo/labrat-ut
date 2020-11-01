@@ -669,7 +669,7 @@ dependencies = [
 [[package]]
 name = "labrat"
 version = "0.1.1-dev"
-source = "git+https://github.com/Vypo/labrat#08cad37e6374341f9a1e3838b22fccd520943a8e"
+source = "git+https://github.com/Vypo/labrat#55b2a835e22bbf720fc86a52ee16bc721c1f70c1"
 dependencies = [
  "chrono",
  "ego-tree",
