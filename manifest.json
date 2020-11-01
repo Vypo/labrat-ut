@@ -1,0 +1,15 @@
+{
+    "name": "labrat-ut.vypo.dev",
+    "description": "A FurAffinity app",
+    "architecture": "@CLICK_ARCH@",
+    "title": "Labrat",
+    "hooks": {
+        "labrat-ut": {
+            "apparmor": "labrat-ut.apparmor",
+            "desktop":  "labrat-ut.desktop"
+        }
+    },
+    "version": "0.1.0",
+    "maintainer": "Vypo Mouse <vypo@fursuits.by>",
+    "framework" : "ubuntu-sdk-16.04"
+}

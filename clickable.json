@@ -1,0 +1,16 @@
+{
+  "image_setup": {
+    "run": [
+      "rustup default 1.46.0 && rustup target add armv7-unknown-linux-gnueabihf && rustup target add aarch64-unknown-linux-gnu"
+    ]
+  },
+  "clickable_minimum_required": "6.12.2",
+  "builder": "rust",
+  "kill": "labrat-ut",
+  "install_data": {
+    "${ROOT}/manifest.json": "${INSTALL_DIR}",
+    "${ROOT}/labrat-ut.apparmor": "${INSTALL_DIR}",
+    "${ROOT}/labrat-ut.desktop": "${INSTALL_DIR}",
+    "${ROOT}/assets": "${INSTALL_DIR}"
+  }
+}

@@ -1,0 +1,26 @@
+[package]
+name = "labrat-ut"
+version = "0.1.0"
+authors = ["Vypo Mouse <vypo@fursuits.by>"]
+edition = "2018"
+build = "src/build.rs"
+license = "AGPL-3.0-or-later"
+
+[dependencies]
+url = "2.1.1"
+labrat = { git = "https://github.com/Vypo/labrat" }
+tokio = { version = "0.2.22", features = ["rt-core", "rt-threaded", "io-util", "fs", "stream"] }
+qmetaobject = "0.1.4"
+cstr = "0.1.0"
+cpp = "0.5.5"
+snafu = "0.6.9"
+reqwest = { version = "0.10.8", default-features = false, features = ["stream"] }
+
+[build-dependencies]
+cpp_build = "0.5"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
