@@ -2,10 +2,11 @@
 
 use labrat::client::Client;
 use labrat::keys::{CommentReplyKey, FavKey, SubmissionsKey, ViewKey};
+use labrat::resources::comment::CommentContainer;
 use labrat::resources::header::{Header, Notifications};
 use labrat::resources::msg::submissions::Submissions;
-use labrat::resources::view::{CommentContainer, View};
-use labrat::resources::{MiniUser, PreviewSize, Submission, SubmissionKind};
+use labrat::resources::view::View;
+use labrat::resources::{MiniUser, PreviewSize, Submission};
 
 use qmetaobject::*;
 
@@ -631,6 +632,11 @@ impl RatController {
     }
 
     fn set_credentials(&mut self, value: QByteArray) {
+        if value.to_slice().len() == 0 {
+            *self.header.borrow_mut() = RatHeader::default();
+            self.headerChanged();
+        }
+
         let header = HeaderValue::from_bytes(value.to_slice()).unwrap();
 
         self.real_credentials = value;
@@ -720,6 +726,8 @@ struct RatSpy {
 
                     QWebEngineCookieStore* cookie_store =
                         profile->cookieStore();
+
+                    cookie_store->deleteAllCookies();
 
                     auto handler = [=](const QNetworkCookie &cookie) {
                         QMetaObject::invokeMethod(

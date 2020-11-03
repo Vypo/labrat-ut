@@ -1,3 +1,4 @@
+import QtGraphicalEffects 1.0
 import QtQuick 2.7
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
@@ -17,6 +18,66 @@ ApplicationWindow {
     visible: true
 
     signal loginCompleted
+
+    Item {
+        id: menuOverlay
+        anchors.fill: parent
+        z: 10000
+        visible: false
+
+        Rectangle {
+            anchors.fill: parent
+            color: "black"
+            opacity: 0.2
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: menuOverlay.visible = false
+                propagateComposedEvents: false
+            }
+        }
+
+        Page {
+            anchors {
+                fill: parent
+                leftMargin: root.width * 0.1
+            }
+            id: menuRect
+            z: 10002
+
+            ColumnLayout {
+                anchors.fill: parent
+
+                Button {
+                    text: "✕"
+                    Layout.preferredWidth: height
+                    Layout.alignment: Qt.AlignRight | Qt.AlignTop
+                    onClicked: menuOverlay.visible = false
+                }
+
+                Button {
+                    text: "Log Out"
+                    highlighted: true
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignBottom
+                    onClicked: {
+                        controller0.credentials = new ArrayBuffer(0);
+                        stack.replace(null, "Pages/Welcome.qml", {isWelcome: true});
+                        menuOverlay.visible = false;
+                    }
+                }
+            }
+        }
+
+        DropShadow {
+            anchors.fill: menuRect
+            radius: 10
+            samples: 10
+            z: 10001
+            source: menuRect
+        }
+
+    }
 
     Page {
         anchors.fill: parent

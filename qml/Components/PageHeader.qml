@@ -28,6 +28,13 @@ ToolBar {
         Avatar {
             id: img
             small: true
+
+            MouseArea {
+                width: parent.width
+                height: parent.height
+                onClicked: menuOverlay.visible = true
+            }
         }
+
     }
 }
