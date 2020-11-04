@@ -11,8 +11,11 @@ mod commands;
 mod qobjects;
 mod qrc;
 
-use labrat::keys::{CommentReplyKey, FavKey, SubmissionsKey, ViewKey};
+use labrat::keys::{
+    CommentReplyKey, FavKey, JournalKey, SubmissionsKey, ViewKey,
+};
 use labrat::resources::header::Header;
+use labrat::resources::journal::Journal;
 use labrat::resources::msg::submissions::Submissions;
 use labrat::resources::view::View;
 
@@ -27,6 +30,7 @@ type ResponseResult = Result<Response, crate::commands::Error>;
 #[derive(Debug)]
 enum Response {
     View(labrat::client::Response<View>),
+    Journal(labrat::client::Response<Journal>),
     Download,
     Login,
     Reply,
@@ -39,6 +43,7 @@ enum Response {
 impl Response {
     fn header(&self) -> Option<&Header> {
         match self {
+            Response::Journal(cr) => cr.header.as_ref(),
             Response::View(cr) => cr.header.as_ref(),
             Response::Submissions(cr) => cr.header.as_ref(),
             Response::Login => None,
@@ -55,6 +60,7 @@ impl Response {
 enum Request {
     Login(HeaderValue),
     View(ViewKey),
+    Journal(JournalKey),
     ClearSubmissions(Vec<ViewKey>),
     Download(Url, Url),
     Reply(CommentReplyKey, String),

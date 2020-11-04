@@ -22,7 +22,9 @@ mod error {
 }
 
 use labrat::client::Client;
-use labrat::keys::{CommentReplyKey, FavKey, SubmissionsKey, ViewKey};
+use labrat::keys::{
+    CommentReplyKey, FavKey, JournalKey, SubmissionsKey, ViewKey,
+};
 
 use reqwest::header::HeaderValue;
 
@@ -48,6 +50,7 @@ pub(crate) async fn command(
         }
         Request::Submissions(key) => submissions(client, key).await,
         Request::View(key) => view(client, key).await,
+        Request::Journal(key) => journal(client, key).await,
         Request::Login(v) => login(client, v).await,
         Request::Fav(k) => fav(client, k).await,
         Request::Unfav(k) => unfav(client, k).await,
@@ -109,6 +112,11 @@ async fn download(source: Url, destination: Url) -> ResponseResult {
     }
 
     Ok(Response::Download)
+}
+
+async fn journal(client: Arc<Client>, key: JournalKey) -> ResponseResult {
+    let response = client.journal(key).await.context(error::Request)?;
+    Ok(Response::Journal(response))
 }
 
 async fn view(client: Arc<Client>, key: ViewKey) -> ResponseResult {

@@ -45,26 +45,126 @@ ApplicationWindow {
             id: menuRect
             z: 10002
 
-            ColumnLayout {
-                anchors.fill: parent
+            ToolButton {
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                }
+                id: closeBtn
+                text: "✕"
+                width: height
+                onClicked: menuOverlay.visible = false
+            }
 
-                Button {
-                    text: "✕"
-                    Layout.preferredWidth: height
-                    Layout.alignment: Qt.AlignRight | Qt.AlignTop
-                    onClicked: menuOverlay.visible = false
+            OverlayMenuButton {
+                anchors {
+                    top: closeBtn.bottom
+                    left: parent.left
+                    right: parent.right
                 }
 
-                Button {
-                    text: "Log Out"
-                    highlighted: true
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignBottom
-                    onClicked: {
-                        controller0.credentials = new ArrayBuffer(0);
-                        stack.replace(null, "Pages/Welcome.qml", {isWelcome: true});
-                        menuOverlay.visible = false;
+                implicitWidth: parent.width
+                id: subsBtn
+                onClicked: controller0.fetchJournalById(6740803)
+                count: controller0.header.submissions
+                buttonText: qsTr("SUBMISSIONS")
+                bubbleColor: "skyblue"
+            }
+
+            OverlayMenuButton {
+                anchors {
+                    top: subsBtn.bottom
+                    left: parent.left
+                    right: parent.right
+                }
+
+                implicitWidth: parent.width
+                id: journalsBtn
+                onClicked: controller0.fetchJournalById(6740803)
+                count: controller0.header.journals
+                buttonText: qsTr("JOURNALS")
+                bubbleColor: "lightgreen"
+            }
+
+            OverlayMenuButton {
+                anchors {
+                    top: journalsBtn.bottom
+                    left: parent.left
+                    right: parent.right
+                }
+
+                implicitWidth: parent.width
+                id: watchesBtn
+                onClicked: controller0.fetchJournalById(6740803)
+                count: controller0.header.watches + controller0.header.favorites + controller0.header.comments
+                buttonText: qsTr("INTERACTIONS")
+                bubbleColor: "orange"
+            }
+
+            OverlayMenuButton {
+                anchors {
+                    top: watchesBtn.bottom
+                    left: parent.left
+                    right: parent.right
+                }
+
+                implicitWidth: parent.width
+                id: notesBtn
+                onClicked: controller0.fetchJournalById(6740803)
+                count: controller0.header.notes
+                buttonText: qsTr("NOTES")
+                bubbleColor: "orangered"
+            }
+
+            OverlayMenuButton {
+                anchors {
+                    top: notesBtn.bottom
+                    left: parent.left
+                    right: parent.right
+                }
+
+                implicitWidth: parent.width
+                id: ticketsBtn
+                onClicked: controller0.fetchJournalById(6740803)
+                count: controller0.header.trouble_tickets
+                buttonText: qsTr("TROUBLE TICKETS")
+                bubbleColor: "black"
+            }
+
+            Button {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    bottom: logoutBtn.top
+                }
+                onClicked: controller0.fetchJournalById(6740803)
+
+                contentItem: Item {
+                    Label {
+                        anchors {
+                            fill: parent
+                            leftMargin: 50
+                        }
+                        horizontalAlignment: Qt.AlignLeft
+                        verticalAlignment: Qt.AlignVCenter
+                        text: "Journal"
                     }
+                }
+            }
+
+            ToolButton {
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    bottom: parent.bottom
+                }
+                id: logoutBtn
+                text: "Log Out"
+                highlighted: true
+                onClicked: {
+                    controller0.credentials = new ArrayBuffer(0);
+                    stack.replace(null, "Pages/Welcome.qml", {isWelcome: true});
+                    menuOverlay.visible = false;
                 }
             }
         }
@@ -103,6 +203,7 @@ ApplicationWindow {
         RatController {
             id: controller0
             onError: console.log(msg)
+            onJournalFetched: stack.push(journalView, {"content": journal})
             onViewFetched: stack.push(viewView, {"content": view})
             onSubmissionsFetched: if (stack.currentItem.isWelcome) {
                 stack.replace(null, submissionsView, {"content": submissions})
@@ -122,6 +223,13 @@ ApplicationWindow {
             id: submissionsView
 
             Submissions {
+            }
+        }
+
+        Component {
+            id: journalView
+
+            Journal {
             }
         }
 

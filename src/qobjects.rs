@@ -1,9 +1,12 @@
 #![allow(non_snake_case)]
 
 use labrat::client::Client;
-use labrat::keys::{CommentReplyKey, FavKey, SubmissionsKey, ViewKey};
+use labrat::keys::{
+    CommentReplyKey, FavKey, JournalKey, SubmissionsKey, ViewKey,
+};
 use labrat::resources::comment::CommentContainer;
 use labrat::resources::header::{Header, Notifications};
+use labrat::resources::journal::Journal;
 use labrat::resources::msg::submissions::Submissions;
 use labrat::resources::view::View;
 use labrat::resources::{MiniUser, PreviewSize, Submission};
@@ -22,6 +25,9 @@ use std::sync::Arc;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use url::Url;
+
+#[derive(Debug, Default, QGadget, Clone)]
+pub struct RatJournalKey(Option<JournalKey>);
 
 #[derive(Debug, Default, QGadget, Clone)]
 pub struct RatViewKey(Option<ViewKey>);
@@ -237,6 +243,86 @@ impl From<&CommentContainer> for ListComment {
 }
 
 #[derive(QObject, Default)]
+pub struct RatJournal {
+    base: qt_base_class!(trait QObject),
+    title: qt_property!(String; READ get_title NOTIFY titleChanged),
+    titleChanged: qt_signal!(),
+    author: qt_property!(RefCell<RatMiniUser>; NOTIFY authorChanged),
+    authorChanged: qt_signal!(),
+    commentsChanged: qt_signal!(),
+    comments: qt_property!(
+        RefCell<SimpleListModel<ListComment>>; NOTIFY commentsChanged
+    ),
+    header: qt_property!(String; READ get_header NOTIFY headerChanged),
+    headerChanged: qt_signal!(),
+    footer: qt_property!(String; READ get_footer NOTIFY footerChanged),
+    footerChanged: qt_signal!(),
+    content: qt_property!(String; READ get_content NOTIFY contentChanged),
+    contentChanged: qt_signal!(),
+    replyKey: qt_property!(RatReply; NOTIFY replyKeyChanged READ get_reply_key),
+    replyKeyChanged: qt_signal!(),
+
+    journal: Option<Journal>,
+}
+
+impl RatJournal {
+    fn get_reply_key(&self) -> RatReply {
+        match &self.journal {
+            Some(v) => RatReply(Some(v.into())),
+            None => RatReply::default(),
+        }
+    }
+
+    fn get_header(&self) -> String {
+        self.journal
+            .as_ref()
+            .and_then(Journal::header)
+            .map(String::from)
+            .unwrap_or_default()
+    }
+
+    fn get_footer(&self) -> String {
+        self.journal
+            .as_ref()
+            .and_then(Journal::footer)
+            .map(String::from)
+            .unwrap_or_default()
+    }
+
+    fn get_content(&self) -> String {
+        self.journal
+            .as_ref()
+            .map(Journal::content)
+            .map(String::from)
+            .unwrap_or_default()
+    }
+
+    fn get_title(&self) -> String {
+        self.journal
+            .as_ref()
+            .map(Journal::title)
+            .map(String::from)
+            .unwrap_or_default()
+    }
+
+    fn set(&mut self, journal: Journal) {
+        let comments =
+            journal.comments().iter().map(ListComment::from).collect();
+
+        self.author.borrow_mut().set(journal.author().clone());
+        self.journal = Some(journal);
+        self.titleChanged();
+        self.replyKeyChanged();
+        self.headerChanged();
+        self.footerChanged();
+        self.contentChanged();
+
+        let mut qcomments = self.comments.borrow_mut();
+        qcomments.reset_data(comments);
+    }
+}
+
+#[derive(QObject, Default)]
 pub struct RatView {
     base: qt_base_class!(trait QObject),
     download: qt_property!(QString; READ get_download NOTIFY downloadChanged),
@@ -421,12 +507,14 @@ pub struct RatController {
         RefCell<RatSubmissions>; NOTIFY submissionsChanged
     ), // TODO: make this read-only
     view: qt_property!(RefCell<RatView>; NOTIFY viewFetched), // TODO: make this read-only
+    journal: qt_property!(RefCell<RatJournal>; NOTIFY journalFetched), // TODO: make this read-only
     credentials: qt_property!(QByteArray; NOTIFY credentialsChanged READ get_credentials WRITE set_credentials),
     credentialsChanged: qt_signal!(),
     loginCompleted: qt_signal!(),
     submissionsChanged: qt_signal!(),
     submissionsFetched: qt_signal!(),
     viewFetched: qt_signal!(),
+    journalFetched: qt_signal!(),
     unfavCompleted: qt_signal!(),
     unfav: qt_method!(
         fn unfav(&mut self, key: RatFav) {
@@ -456,16 +544,27 @@ pub struct RatController {
             self.fetchView(RatViewKey(Some(ViewKey { view_id })));
         }
     ),
+    fetchView: qt_method!(
+        fn fetchView(&mut self, view: RatViewKey) {
+            let content = Request::View(view.0.unwrap());
+            self.send(content);
+        }
+    ),
     clearSubmission: qt_method!(
         fn clearSubmission(&mut self, view: RatViewKey) {
             let content = Request::ClearSubmissions(vec![view.0.unwrap()]);
             self.send(content);
         }
     ),
-    fetchView: qt_method!(
-        fn fetchView(&mut self, view: RatViewKey) {
-            let content = Request::View(view.0.unwrap());
+    fetchJournal: qt_method!(
+        fn fetchJournal(&mut self, journal: RatJournalKey) {
+            let content = Request::Journal(journal.0.unwrap());
             self.send(content);
+        }
+    ),
+    fetchJournalById: qt_method!(
+        fn fetchJournalById(&mut self, journal_id: u64) {
+            self.fetchJournal(RatJournalKey(Some(JournalKey { journal_id })));
         }
     ),
     fetchSubmissions: qt_method!(
@@ -516,6 +615,10 @@ pub struct RatController {
                             controller.submissionsFetched();
                         }
                         Response::ClearSubmissions => {}
+                        Response::Journal(v) => {
+                            controller.journal.borrow_mut().set(v.page);
+                            controller.journalFetched();
+                        }
                         Response::View(v) => {
                             controller.view.borrow_mut().set(v.page);
                             controller.viewFetched();
@@ -788,6 +891,7 @@ pub fn register() {
 
     qml_register_type::<RatController>(uri, 1, 0, cstr!("RatController"));
     qml_register_type::<RatView>(uri, 1, 0, cstr!("RatView"));
+    qml_register_type::<RatJournal>(uri, 1, 0, cstr!("RatJournal"));
     qml_register_type::<RatHeader>(uri, 1, 0, cstr!("RatHeader"));
     qml_register_type::<RatSpy>(uri, 1, 0, cstr!("RatSpy"));
     qml_register_type::<RatMiniUser>(uri, 1, 0, cstr!("RatMiniUser"));

@@ -99,10 +99,12 @@ MouseArea {
                 Layout.alignment: Qt.AlignLeft
                 Layout.preferredWidth: parent.Layout.preferredWidth - Layout.leftMargin - 10
                 Layout.leftMargin: depthRect.width * 2
+                textFormat: Text.RichText
             }
 
             CommentReply {
                 id: commentReply
+                onClosed: comment.replyOpen = false
             }
         }
     }

@@ -138,6 +138,7 @@ ListView {
 
         Text {
             text: scroll.content.description
+            textFormat: Text.RichText
             wrapMode: Text.Wrap
             horizontalAlignment: Text.AlignJustify
             Layout.topMargin: tools.height / 2
@@ -150,6 +151,7 @@ ListView {
         CommentReply {
             replyOpen: scroll.replyOpen
             replyKey: scroll.content.replyKey
+            onClosed: scroll.replyOpen = false
         }
     }
 }

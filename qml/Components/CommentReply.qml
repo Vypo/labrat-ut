@@ -6,6 +6,7 @@ import Labrat 1.0
 
 
 ColumnLayout {
+    signal closed
     property bool replyOpen: false
     property var replyKey
 
@@ -37,8 +38,8 @@ ColumnLayout {
             text: qsTr('Cancel')
             Layout.alignment: Qt.AlignRight
             onClicked: {
-                replyRoot.replyOpen = false;
                 replyText.text = "";
+                closed();
             }
         }
 
@@ -48,8 +49,8 @@ ColumnLayout {
             highlighted: true
             onClicked: {
                 controller0.reply(replyRoot.replyKey, replyText.text);
-                replyRoot.replyOpen = false;
                 replyText.text = "";
+                closed();
             }
         }
     }
