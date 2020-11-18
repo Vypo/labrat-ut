@@ -6,6 +6,7 @@ A FurAffinity app
 
  - Check time zones for unauthenticated requests
  - Refactor so that updates to objects (like faving an image) can be reflected immediately in the UI.
+ - Make a custom implementation of list model for submissions that understands pagination.
 
 ## License
 

@@ -8,6 +8,7 @@ qrc!(qml_resources,
         "qml/Pages/ExportPage.qml",
         "qml/Pages/Submissions.qml",
         "qml/Pages/Welcome.qml",
+        "qml/Pages/Journals.qml",
 
         "qml/Components/PageHeader.qml",
         "qml/Components/Avatar.qml",

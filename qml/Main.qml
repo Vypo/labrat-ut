@@ -80,7 +80,7 @@ ApplicationWindow {
 
                 implicitWidth: parent.width
                 id: journalsBtn
-                onClicked: controller0.fetchJournalById(6740803)
+                onClicked: stack.push(journalsView, {"content": controller0.journals})
                 count: controller0.header.journals
                 buttonText: qsTr("JOURNALS")
                 bubbleColor: "lightgreen"
@@ -223,6 +223,13 @@ ApplicationWindow {
             id: submissionsView
 
             Submissions {
+            }
+        }
+
+        Component {
+            id: journalsView
+
+            Journals {
             }
         }
 

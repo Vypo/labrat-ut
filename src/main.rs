@@ -16,6 +16,7 @@ use labrat::keys::{
 };
 use labrat::resources::header::Header;
 use labrat::resources::journal::Journal;
+use labrat::resources::msg::others::Others;
 use labrat::resources::msg::submissions::Submissions;
 use labrat::resources::view::View;
 
@@ -38,11 +39,13 @@ enum Response {
     Unfav(labrat::client::Response<View>),
     Submissions(labrat::client::Response<Submissions>),
     ClearSubmissions,
+    Others(labrat::client::Response<Others>),
 }
 
 impl Response {
     fn header(&self) -> Option<&Header> {
         match self {
+            Response::Others(cr) => cr.header.as_ref(),
             Response::Journal(cr) => cr.header.as_ref(),
             Response::View(cr) => cr.header.as_ref(),
             Response::Submissions(cr) => cr.header.as_ref(),
@@ -67,6 +70,7 @@ enum Request {
     Fav(FavKey),
     Unfav(FavKey),
     Submissions(SubmissionsKey),
+    Others,
 }
 
 #[derive(Debug)]

@@ -7,6 +7,7 @@ use labrat::keys::{
 use labrat::resources::comment::CommentContainer;
 use labrat::resources::header::{Header, Notifications};
 use labrat::resources::journal::Journal;
+use labrat::resources::msg::others::{MiniJournal, Others};
 use labrat::resources::msg::submissions::Submissions;
 use labrat::resources::view::View;
 use labrat::resources::{MiniUser, PreviewSize, Submission};
@@ -165,6 +166,31 @@ impl RatHeader {
             .as_ref()
             .map(|h| h.trouble_tickets)
             .unwrap_or_default()
+    }
+}
+
+#[derive(Debug, Default, SimpleListItem)]
+pub struct ListJournal {
+    pub key: RatJournalKey,
+
+    pub author_avatar: QString,
+    pub author_name: String,
+    pub author_slug: String,
+
+    pub title: String,
+}
+
+impl From<&MiniJournal> for ListJournal {
+    fn from(j: &MiniJournal) -> Self {
+        Self {
+            key: RatJournalKey(Some(j.into())),
+
+            author_avatar: QString::from(j.author().avatar().as_str()),
+            author_name: j.author().name().to_string(),
+            author_slug: j.author().name().to_string(),
+
+            title: j.title().to_string(),
+        }
     }
 }
 
@@ -482,6 +508,26 @@ impl RatSubmissions {
         }
     }
 }
+
+#[derive(QObject, Default)]
+pub struct RatJournals {
+    base: qt_base_class!(trait QObject),
+    model: qt_property!(
+        RefCell<SimpleListModel<ListJournal>>; NOTIFY modelChanged
+    ),
+    modelChanged: qt_signal!(),
+}
+
+impl RatJournals {
+    fn set(&mut self, page: Others) {
+        let jrnls: Vec<_> =
+            page.journals().iter().map(ListJournal::from).collect();
+
+        let mut qjrnls = self.model.borrow_mut();
+        qjrnls.reset_data(jrnls);
+    }
+}
+
 #[derive(Debug, Clone, QGadget, Default)]
 pub struct RatReply(Option<CommentReplyKey>);
 
@@ -506,6 +552,10 @@ pub struct RatController {
     submissions: qt_property!(
         RefCell<RatSubmissions>; NOTIFY submissionsChanged
     ), // TODO: make this read-only
+    journals: qt_property!(
+        RefCell<RatJournals>; NOTIFY othersChanged
+    ), // TODO: make this read-only
+    othersChanged: qt_signal!(),
     view: qt_property!(RefCell<RatView>; NOTIFY viewFetched), // TODO: make this read-only
     journal: qt_property!(RefCell<RatJournal>; NOTIFY journalFetched), // TODO: make this read-only
     credentials: qt_property!(QByteArray; NOTIFY credentialsChanged READ get_credentials WRITE set_credentials),
@@ -567,6 +617,15 @@ pub struct RatController {
             self.fetchJournal(RatJournalKey(Some(JournalKey { journal_id })));
         }
     ),
+    fetchOthers: qt_method!(
+        fn fetchOthers(&mut self) {
+            if self.worker.is_none() {
+                self.start();
+            }
+
+            self.send(Request::Others);
+        }
+    ),
     fetchSubmissions: qt_method!(
         fn fetchSubmissions(&mut self, key: RatSubs) {
             if self.worker.is_none() {
@@ -609,6 +668,10 @@ pub struct RatController {
                     match content {
                         Response::Login => {
                             controller.loginCompleted();
+                        }
+                        Response::Others(o) => {
+                            controller.journals.borrow_mut().set(o.page);
+                            controller.othersChanged();
                         }
                         Response::Submissions(s) => {
                             controller.submissions.borrow_mut().set(s.page);
@@ -896,4 +959,5 @@ pub fn register() {
     qml_register_type::<RatSpy>(uri, 1, 0, cstr!("RatSpy"));
     qml_register_type::<RatMiniUser>(uri, 1, 0, cstr!("RatMiniUser"));
     qml_register_type::<RatSubmissions>(uri, 1, 0, cstr!("RatSubmissions"));
+    qml_register_type::<RatJournals>(uri, 1, 0, cstr!("RatJournals"));
 }

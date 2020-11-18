@@ -55,6 +55,7 @@ pub(crate) async fn command(
         Request::Fav(k) => fav(client, k).await,
         Request::Unfav(k) => unfav(client, k).await,
         Request::Reply(key, text) => reply(client, key, text).await,
+        Request::Others => others(client).await,
         Request::Download(source, destination) => {
             download(source, destination).await
         }
@@ -70,6 +71,11 @@ async fn clear_submissions(
         .await
         .context(error::Request)?;
     Ok(Response::ClearSubmissions)
+}
+
+async fn others(client: Arc<Client>) -> ResponseResult {
+    let response = client.others().await.context(error::Request)?;
+    Ok(Response::Others(response))
 }
 
 async fn submissions(
