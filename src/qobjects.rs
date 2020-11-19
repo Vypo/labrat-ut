@@ -704,7 +704,7 @@ pub struct RatController {
                 }
             });
 
-            let credentials = self.real_credentials.clone();
+            let credentials = self.credentials.clone();
             std::thread::spawn(move || Self::run(credentials, receiver, cb));
         }
     ),
@@ -720,7 +720,6 @@ pub struct RatController {
 
     worker: Option<UnboundedSender<Msg<Request>>>,
     current_request: usize,
-    real_credentials: QByteArray,
 }
 
 impl RatController {
@@ -794,7 +793,7 @@ impl RatController {
     }
 
     fn get_credentials(&self) -> QByteArray {
-        self.real_credentials.clone()
+        self.credentials.clone()
     }
 
     fn set_credentials(&mut self, value: QByteArray) {
@@ -805,7 +804,7 @@ impl RatController {
 
         let header = HeaderValue::from_bytes(value.to_slice()).unwrap();
 
-        self.real_credentials = value;
+        self.credentials = value;
         self.send(Request::Login(header));
 
         self.credentialsChanged();
