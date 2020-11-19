@@ -189,8 +189,6 @@ ApplicationWindow {
             onViewFetched: stack.push(viewView, {"content": view})
             onSubmissionsFetched: if (stack.currentItem.isWelcome) {
                 stack.replace(null, submissionsView, {"content": submissions})
-            } else {
-                stack.push(submissionsView, {"content": submissions})
             }
             onLoginCompleted: stack.pop()
 
@@ -268,7 +266,10 @@ ApplicationWindow {
 
                 Button {
                     text: qsTr('Submissions')
-                    onClicked: controller0.fetchSubmissions(Rat.Oldest)
+                    onClicked: {
+                        controller0.fetchSubmissions(Rat.Oldest);
+                        stack.push(submissionsView, {"content": controller0.submissions})
+                    }
                 }
 
                 Item {

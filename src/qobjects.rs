@@ -19,7 +19,7 @@ use reqwest::header::HeaderValue;
 use super::{Msg, Request, Response, ResponseResult};
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::convert::TryFrom;
 use std::sync::Arc;
 
@@ -30,7 +30,9 @@ use url::Url;
 #[derive(Debug, Default, QGadget, Clone)]
 pub struct RatJournalKey(Option<JournalKey>);
 
-#[derive(Debug, Default, QGadget, Clone)]
+#[derive(
+    Debug, Default, QGadget, Clone, Hash, PartialEq, Eq, Ord, PartialOrd,
+)]
 pub struct RatViewKey(Option<ViewKey>);
 
 #[derive(QObject, Default)]
@@ -492,20 +494,40 @@ pub struct RatSubmissions {
 }
 
 impl RatSubmissions {
-    fn set(&mut self, page: Submissions) {
-        let has_prev = page.prev().is_some();
+    fn merge(&mut self, page: Submissions) {
+        if page.prev().map(|p| p < &self.prev.0).unwrap_or(false) {
+            self.prev.0 = page.prev().unwrap().clone();
+            self.prevChanged();
+        }
 
-        let subs: Vec<_> =
-            page.into_items().iter().map(ListSubmission::from).collect();
+        if page.next().map(|n| n > &self.next.0).unwrap_or(false) {
+            self.next.0 = page.next().unwrap().clone();
+            self.nextChanged();
+        }
+
+        let mut subs: BTreeMap<_, _> = page
+            .into_items()
+            .iter()
+            .map(ListSubmission::from)
+            .map(|s| (s.key.clone(), s))
+            .collect();
 
         let mut qsubs = self.model.borrow_mut();
-        if has_prev {
-            for sub in subs.into_iter() {
-                qsubs.push(sub);
+
+        for idx in 0..qsubs.row_count() {
+            let key = qsubs[idx as usize].key.clone();
+            if let Some(existing) = subs.remove(&key) {
+                qsubs.change_line(idx as usize, existing);
             }
-        } else {
-            qsubs.reset_data(subs);
         }
+
+        for (_, sub) in subs.into_iter() {
+            qsubs.push(sub);
+        }
+    }
+
+    fn clear(&mut self) {
+        self.model.borrow_mut().reset_data(vec![]);
     }
 }
 
@@ -674,7 +696,14 @@ pub struct RatController {
                             controller.othersChanged();
                         }
                         Response::Submissions(s) => {
-                            controller.submissions.borrow_mut().set(s.page);
+                            {
+                                let mut subs =
+                                    controller.submissions.borrow_mut();
+                                if s.page.prev().is_none() {
+                                    subs.clear();
+                                }
+                                subs.merge(s.page);
+                            }
                             controller.submissionsFetched();
                         }
                         Response::ClearSubmissions => {}

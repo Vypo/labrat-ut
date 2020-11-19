@@ -13,6 +13,9 @@ ListView {
     width: parent.width
     model: content.model
     spacing: 0
+    onAtYEndChanged: if (model && listView.atYEnd) {
+        controller0.fetchSubmissions(content.next)
+    }
 
     delegate: SwipeDelegate {
         id: swipeDelegate
