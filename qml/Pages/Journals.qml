@@ -29,7 +29,6 @@ ListView {
             right: parent.right
         }
 
-        height: width
         padding: 0
         spacing: 0
         topPadding: 0
@@ -41,11 +40,12 @@ ListView {
             id: swipeBg
             width: parent.width
             height: parent.height
+            color: 'transparent'
         }
 
         swipe.left: Label {
             text: qsTr('✖')
-            font.pixelSize: height / 10
+            font.pixelSize: 12
             color: 'white'
             verticalAlignment: Label.AlignVCenter
             horizontalAlignment: Label.AlignRight
@@ -61,7 +61,7 @@ ListView {
 
         swipe.right: Label {
             text: qsTr('✖')
-            font.pixelSize: height / 10
+            font.pixelSize: 12
             color: 'white'
             verticalAlignment: Label.AlignVCenter
             horizontalAlignment: Label.AlignLeft
@@ -94,63 +94,58 @@ ListView {
             }
         }
 
-        contentItem: Rectangle {
+        contentItem: ColumnLayout {
             width: parent.width
-            height: parent.height
+
+            Item {
+                height: 10
+            }
 
             RowLayout {
-                anchors {
-                    bottom: parent.bottom
-                    left: parent.left
-                    right: parent.right
-                    margins: 10
+                Layout.maximumWidth: listView.width - 20
+                Layout.alignment: Qt.AlignHCenter
+                Layout.fillHeight: true
+                spacing: 10
+
+                Avatar {
+                    small: false
+                    source: model.author_avatar
                 }
 
-                height: 42
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
 
-                Rectangle {
-                    Layout.fillHeight: true
-                    Layout.preferredWidth: subRow.width + 20
-
-                    radius: 21
-                    color: 'white'
-
-                    border {
-                        color: '#cccccc'
-                        width: 1
+                    Label {
+                        id: subTitle
+                        text: model.title
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                        Layout.alignment: Qt.AlignLeft
+                        Layout.fillWidth: true
+                        font.bold: true
                     }
 
-                    RowLayout {
-                        id: subRow
-                        anchors {
-                            verticalCenter: parent.verticalCenter
-                        }
-                        Avatar {
-                            small: true
-                            source: model.author_avatar
-                        }
-                        ColumnLayout {
-                            Layout.maximumWidth: listView.width / 2
-                            spacing: 0
-
-                            Label {
-                                Layout.maximumWidth: listView.width / 2
-                                id: subTitle
-                                text: model.title
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
-                            }
-                            Label {
-                                Layout.maximumWidth: listView.width / 2
-                                text: qsTr('by %1').arg(model.author_name)
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
-                                fontSizeMode: Text.Fit
-                            }
-                        }
+                    Label {
+                        text: qsTr('by %1').arg(model.author_name)
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                        fontSizeMode: Text.Fit
+                        Layout.alignment: Qt.AlignLeft
+                        Layout.fillWidth: true
                     }
                 }
             }
+
+            Item {
+                height: 9
+            }
+            Rectangle {
+                height: 1
+                Layout.fillWidth: true
+                color: '#cccccc'
+            }
+
         }
     }
 }

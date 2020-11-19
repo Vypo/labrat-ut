@@ -80,7 +80,10 @@ ApplicationWindow {
 
                 implicitWidth: parent.width
                 id: journalsBtn
-                onClicked: stack.push(journalsView, {"content": controller0.journals})
+                onClicked: {
+                    stack.push(journalsView, {"content": controller0.journals});
+                    menuOverlay.visible = false;
+                }
                 count: controller0.header.journals
                 buttonText: qsTr("JOURNALS")
                 bubbleColor: "lightgreen"
@@ -129,27 +132,6 @@ ApplicationWindow {
                 count: controller0.header.trouble_tickets
                 buttonText: qsTr("TROUBLE TICKETS")
                 bubbleColor: "black"
-            }
-
-            Button {
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    bottom: logoutBtn.top
-                }
-                onClicked: controller0.fetchJournalById(6740803)
-
-                contentItem: Item {
-                    Label {
-                        anchors {
-                            fill: parent
-                            leftMargin: 50
-                        }
-                        horizontalAlignment: Qt.AlignLeft
-                        verticalAlignment: Qt.AlignVCenter
-                        text: "Journal"
-                    }
-                }
             }
 
             ToolButton {
