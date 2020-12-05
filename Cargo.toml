@@ -15,6 +15,7 @@ cstr = "0.1.0"
 cpp = "0.5.5"
 snafu = "0.6.9"
 reqwest = { version = "0.10.8", default-features = false, features = ["stream"] }
+chrono = "0.4.19"
 
 [build-dependencies]
 cpp_build = "0.5"

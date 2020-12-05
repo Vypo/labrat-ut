@@ -19,7 +19,7 @@ use reqwest::header::HeaderValue;
 use super::{Msg, Request, Response, ResponseResult};
 
 use std::cell::RefCell;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::convert::TryFrom;
 use std::sync::Arc;
 
@@ -480,6 +480,47 @@ pub struct RatSubmissions {
     nextChanged: qt_signal!(),
     prev: qt_property!(RatSubs; NOTIFY prevChanged),
     prevChanged: qt_signal!(),
+    controller: qt_property!(QPointer<RatController>; NOTIFY controllerChanged),
+    controllerChanged: qt_signal!(),
+    isMarked: qt_method!(
+        fn isMarked(&mut self, key: RatViewKey) -> bool {
+            key.0.map(|k| self.marked.contains(&k)).unwrap_or_default()
+        }
+    ),
+    mark: qt_method!(
+        fn mark(&mut self, key: RatViewKey, marked: bool) {
+            if let Some(k) = key.0 {
+                if marked {
+                    self.marked.insert(k);
+                } else {
+                    self.marked.remove(&k);
+                }
+            }
+        }
+    ),
+    clearMarked: qt_method!(
+        fn clearMarked(&mut self) {
+            if let Some(controller) = self.controller.as_pinned() {
+                let content = Request::ClearSubmissions(
+                    self.marked.iter().map(Clone::clone).collect(),
+                );
+                controller.borrow_mut().send(content);
+            }
+
+            let mut items = self.model.borrow_mut();
+            let mut idx = 0;
+            while idx < items.row_count() {
+                if let Some(k) = items[idx as usize].key.0 {
+                    if self.marked.remove(&k) {
+                        items.remove(idx as usize);
+                        continue;
+                    }
+                }
+
+                idx += 1;
+            }
+        }
+    ),
     remove: qt_method!(
         fn remove(&mut self, key: RatViewKey) {
             let mut items = self.model.borrow_mut();
@@ -491,6 +532,8 @@ pub struct RatSubmissions {
             }
         }
     ),
+
+    marked: HashSet<ViewKey>,
 }
 
 impl RatSubmissions {
@@ -527,6 +570,7 @@ impl RatSubmissions {
     }
 
     fn clear(&mut self) {
+        self.marked.clear();
         self.model.borrow_mut().reset_data(vec![]);
     }
 }
@@ -699,6 +743,9 @@ pub struct RatController {
                             {
                                 let mut subs =
                                     controller.submissions.borrow_mut();
+                                if subs.controller.is_null() {
+                                    subs.controller = (&**controller).into();
+                                }
                                 if s.page.prev().is_none() {
                                     subs.clear();
                                 }

@@ -100,71 +100,102 @@ ListView {
         contentItem: Rectangle {
             width: parent.width
             height: parent.height
-
-            AnimatedImage {
-                anchors {
-                    fill: parent
-                }
-
-                source: model.preview
-                height: (sourceSize.height / sourceSize.width) * width
-                autoTransform: true
-                fillMode: Image.PreserveAspectCrop
-                clip: true
-                verticalAlignment: Qt.AlignVCenter
+            color: if (checkBox.checked) {
+                'lavender'
+            } else {
+                'white'
             }
 
-            RowLayout {
-                anchors {
-                    bottom: parent.bottom
-                    left: parent.left
-                    right: parent.right
-                    margins: 10
-                }
-
-                height: 42
+            ColumnLayout {
+                anchors.fill: parent
 
                 Rectangle {
+                    height: 2
+                    Layout.fillWidth: true
+                    color: "#eeeeee"
+                }
+
+                Item {
+                    Layout.preferredHeight: 5
+                }
+
+                RowLayout {
+                    id: subTopRow
+                    Layout.maximumWidth: parent.width - 20
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Avatar {
+                        small: true
+                        source: model.artist_avatar
+                    }
+
+                    ColumnLayout {
+                        spacing: 0
+                        Layout.fillWidth: true
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: model.artist_name
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                            fontSizeMode: Text.Fit
+                            horizontalAlignment: Qt.AlignLeft
+                            font.bold: true
+                        }
+                    }
+
+                    Button {
+                        text: 'TODO'
+                        onClicked: content.clearMarked()
+                    }
+
+                    CheckBox {
+                        id: checkBox
+                        onCheckedChanged: content.mark(model.key, checked)
+                        Component.onCompleted: checked = content.isMarked(model.key)
+                    }
+                }
+
+                Item {
+                    Layout.preferredHeight: 5
+                }
+
+                AnimatedImage {
+                    Layout.preferredWidth: parent.width
                     Layout.fillHeight: true
-                    Layout.preferredWidth: subRow.width + 20
+                    source: model.preview
+                    autoTransform: true
+                    fillMode: Image.PreserveAspectCrop
+                    clip: true
+                }
 
-                    radius: 21
-                    color: 'white'
+                Item {
+                    Layout.preferredHeight: 5
+                }
 
-                    border {
-                        color: '#cccccc'
-                        width: 1
+                RowLayout {
+                    Layout.preferredHeight: subTopRow.height
+                    Layout.maximumWidth: parent.width - 20
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Label {
+                        Layout.maximumWidth: parent.width
+                        id: subTitle
+                        text: model.title
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+                        horizontalAlignment: Qt.AlignLeft
                     }
+                }
 
-                    RowLayout {
-                        id: subRow
-                        anchors {
-                            verticalCenter: parent.verticalCenter
-                        }
-                        Avatar {
-                            small: true
-                            source: model.artist_avatar
-                        }
-                        ColumnLayout {
-                            Layout.maximumWidth: listView.width / 2
-                            spacing: 0
+                Item {
+                    Layout.preferredHeight: 5
+                }
 
-                            Label {
-                                Layout.maximumWidth: listView.width / 2
-                                id: subTitle
-                                text: model.title
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
-                            }
-                            Label {
-                                Layout.maximumWidth: listView.width / 2
-                                text: qsTr('by %1').arg(model.artist_name)
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
-                                fontSizeMode: Text.Fit
-                            }
-                        }
-                    }
+                Rectangle {
+                    height: 2
+                    Layout.fillWidth: true
+                    color: "#eeeeee"
                 }
             }
         }
