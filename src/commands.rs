@@ -36,7 +36,7 @@ use std::sync::Arc;
 
 use super::{Request, Response, ResponseResult};
 
-use tokio::stream::StreamExt;
+use tokio_stream::StreamExt;
 
 use url::Url;
 

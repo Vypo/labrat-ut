@@ -834,7 +834,7 @@ impl RatController {
     ) where
         F: 'static + Fn(Msg<ResponseResult>) + Send + Sync + Clone,
     {
-        let mut runtime = tokio::runtime::Runtime::new().unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(Self::run_async(credentials, commands, f));
     }
 
