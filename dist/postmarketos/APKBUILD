@@ -1,0 +1,31 @@
+# Contributor:
+# Maintainer:
+pkgname=labrat-ut
+pkgver=0.1.0
+pkgrel=0
+pkgdesc="Unofficial FurAffinity app for mobile devices"
+url="https://github.com/vypo/labrat-ut"
+arch="all"
+license="AGPL-3.0"
+depends="qt5-qtbase qt5-qtquickcontrols qt5-qtwebengine qt5-qtquickcontrols2"
+makedepends="rust cargo qt5-qtbase-dev qt5-qtdeclarative-dev qt5-qtwebengine-dev qt5-qtquickcontrols2-dev"
+install=""
+subpackages=""
+_commit="6737decf556b87cda052b5360aeec29131deacfe"
+source="$pkgname-$_commit.tar.gz::https://github.com/Vypo/labrat-ut/archive/$_commit.tar.gz"
+builddir="$srcdir/labrat-ut-$_commit"
+
+build() {
+	PATH="/usr/lib/qt5/bin/:$PATH" cargo build --release --verbose
+}
+
+check() {
+	PATH="/usr/lib/qt5/bin/:$PATH" cargo test --all --release --verbose
+}
+
+package() {
+	install -Dm755 target/release/labrat-ut "$pkgdir"/usr/bin/labrat-ut
+	install -Dm644 labrat-ut.desktop -t "$pkgdir"/usr/share/applications
+}
+
+sha512sums="1ec6e33319d96c63b59795b8100f68220b02b916d6363475ea3dce395ed1e49eb94b148ebefdab6d0eaec028ffd6013458071b8c0325acc1c5aa3c8883736abb  labrat-ut-6737decf556b87cda052b5360aeec29131deacfe.tar.gz"
